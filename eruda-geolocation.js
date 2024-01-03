@@ -15,7 +15,9 @@
       link.rel = "stylesheet";
       link.type = "text/css";
       link.href = src;
-      (container || document.head).appendChild(link);
+      (container || document.head || document.documentElement).appendChild(
+        link
+      );
     }
     function loadJs(src, cb) {
       var script = document.createElement("script");
@@ -28,7 +30,9 @@
 
         cb && cb(!isNotLoaded);
       };
-      document.body.appendChild(script);
+      (document.body || document.head || document.documentElement).appendChild(
+        script
+      );
     }
     class Geolocation extends eruda.Tool {
       constructor() {
