@@ -126,7 +126,10 @@
 			 */
 			_initMap() {
 				/* 资源地址 */
-				let srcPathName = "https://fastly.jsdelivr.net/npm/leaflet@1.9.4/dist/";
+				const version = "1.9.4";
+				const jsdelivrSrc = `https://fastly.jsdelivr.net/npm/leaflet@${version}/dist/`;
+				const unpkgSrc = `https://unpkg.com/leaflet@${version}/dist/`;
+				let srcPathName = jsdelivrSrc;
 				loadCss(srcPathName + "leaflet.css", this._$el.get(0));
 				loadJs(srcPathName + "leaflet.js", (isLoaded) => {
 					if (!isLoaded) return this.setInfo("Failed to init map");
