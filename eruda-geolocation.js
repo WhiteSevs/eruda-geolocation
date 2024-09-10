@@ -38,6 +38,8 @@
 			constructor() {
 				super();
 				this.name = "geolocation";
+				/** 默认的经纬度定位（北京） */
+				this.defaultGeoLocation = [39.9, 116.39];
 				this._style = evalCss(
 					[
 						".eruda-geolocation {position: relative;}",
@@ -48,33 +50,61 @@
 			}
 			init($el, container) {
 				super.init($el, container);
-				$el.html(`
-              <div id="eruda-map" class="eruda-map"></div>
-              <div class="eruda-info">test</div>
-          `);
+				$el.html(/*html*/ `
+					<div id="eruda-map" class="eruda-map"></div>
+					<div class="eruda-info">test</div>
+				`);
 				this._initMap();
 				this._$info = this._$el.find(".eruda-info");
 			}
+			/**
+			 * 面板显示时触发
+			 */
 			show() {
 				super.show();
 				this.resetView();
 			}
-			resetView() {
-				if (!navigator.geolocation) return;
-
-				navigator.geolocation.getCurrentPosition(
-					(position) => {
-						var coords = position.coords,
-							longitude = coords.longitude,
-							latitude = coords.latitude;
-
-						this.setView(latitude, longitude);
-					},
-					(e) => {
-						this.setInfo(e.message);
-					}
-				);
+			/**
+			 * 面板隐藏时触发
+			 */
+			hide() {
+				super.hide();
 			}
+			/**
+			 * 面板销毁时触发
+			 */
+			destroy() {
+				super.destroy();
+				evalCss.remove(this._style);
+			}
+			/**
+			 * 重置视图
+			 */
+			resetView() {
+				if (!navigator.geolocation) return false;
+				return new Promise((resolve) => {
+					navigator.geolocation.getCurrentPosition(
+						(position) => {
+							var coords = position.coords,
+								longitude = coords.longitude,
+								latitude = coords.latitude;
+
+							this.setView(latitude, longitude);
+							resolve(true);
+						},
+						(e) => {
+							this.setInfo(e.message);
+							resolve(false);
+						}
+					);
+				});
+			}
+			/**
+			 * 设置经纬度视图
+			 * @param {number} latitude 纬度
+			 * @param {number} longitude 经度
+			 * @returns
+			 */
 			setView(latitude, longitude) {
 				if (!this._map) return;
 				/* 设置地图中心点，经纬度 */
@@ -91,13 +121,9 @@
 			setInfo(text) {
 				this._$info.text(text);
 			}
-			hide() {
-				super.hide();
-			}
-			destroy() {
-				super.destroy();
-				evalCss.remove(this._style);
-			}
+			/**
+			 * 初始化地图数据
+			 */
 			_initMap() {
 				/* 资源地址 */
 				let srcPathName = "https://fastly.jsdelivr.net/npm/leaflet@1.9.4/dist/";
@@ -107,10 +133,10 @@
 					L.Icon.Default.imagePath = srcPathName + "images/";
 					this.setInfo("Map successfully initialized");
 					this._map = L.map(this._$el.find("#eruda-map").get(0)).setView(
-						[39.9, 116.39],
+						this.defaultGeoLocation,
 						13
 					);
-					this._marker = L.marker([39.9, 116.39]).addTo(this._map);
+					this._marker = L.marker(this.defaultGeoLocation).addTo(this._map);
 					// eslint-disable-next-line no-undef
 					L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 						maxZoom: 19,
